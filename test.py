@@ -11,6 +11,7 @@ import logging
 
 np.random.seed(555)
 torch.manual_seed(555)
+lstm_dim = 10080
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -49,9 +50,9 @@ def main():
     logging.info(f"Testing using device: {device}")
 
     try:
-        with open('./data/P_te.pkl', 'rb') as f:
+        with open('./data_example/P_val.pkl', 'rb') as f:
             phenotype_te = pickle.load(f)
-        with open('./data/G_te.pkl', 'rb') as f:
+        with open('./data_example/G_val.pkl', 'rb') as f:
             genotype1d_te = pickle.load(f)
     except FileNotFoundError:
         logging.error("NOT FOUND")
@@ -70,7 +71,7 @@ def main():
 
     best_model_path = 'best_model.ckpt'
     try:
-        model = wheatGP_base().to(device)
+        model = wheatGP_base(lstm_dim).to(device)
         model.load_state_dict(torch.load(best_model_path))
         model.eval()
         logging.info(f"Loaded best model from {best_model_path}")

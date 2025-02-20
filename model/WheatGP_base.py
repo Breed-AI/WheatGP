@@ -68,10 +68,10 @@ class LSTMModule(nn.Module):
         return lstm_out
 
 class wheatGP_base(nn.Module):
-    def __init__(self):
+    def __init__(self, lstm_dim):
         super(wheatGP_base, self).__init__()
         self.ConvPart = ConvPart()
-        self.lstm = LSTMModule(10080, 128)
+        self.lstm = LSTMModule(lstm_dim, 128)
         self.shape_module = ShapeModule()
         self.fc = nn.Sequential(nn.Linear(128, 1))
 

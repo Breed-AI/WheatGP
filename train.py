@@ -18,14 +18,14 @@ torch.manual_seed(555)
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-with open('./data/P_train.pkl', 'rb') as f:
+with open('./data_example/P_train.pkl', 'rb') as f:
     phenotype_train = pickle.load(f)
-with open('./data/G_train.pkl', 'rb') as f:
+with open('./data_example/G_train.pkl', 'rb') as f:
     genotype1d_train = pickle.load(f)
 
-with open('./data/P_val.pkl', 'rb') as f:
+with open('./data_example/P_val.pkl', 'rb') as f:
     phenotype_val = pickle.load(f)
-with open('./data/G_val.pkl', 'rb') as f:
+with open('./data_example/G_val.pkl', 'rb') as f:
     genotype1d_val = pickle.load(f)
 
 def split_genotype_data(genotype1d_dict, features_per_group):
@@ -136,7 +136,7 @@ def main():
     G1train, G2train, G3train, G4train, G5train = split_genotype_data(genotype1d_train, features_per_group)
     G1val, G2val, G3val, G4val, G5val = split_genotype_data(genotype1d_val, features_per_group)
 
-
+    lstm_dim = 10080 # Calculation based on the input size
     learning_rate = 0.005  # 0.0001 - 0.01
     batch_size_train = 64  # 16 - 128
     weight_decay = 0.0001  # 0.00001 - 0.001
@@ -156,7 +156,7 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size_val, shuffle=False)
 
-    model = wheatGP_base().to(device)
+    model = wheatGP_base(lstm_dim).to(device)
 
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
