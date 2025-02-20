@@ -9,14 +9,9 @@
 
 Wheat's polyploid structure involves intricate allelic interactions and pronounced epistatic effects, which require advanced feature extraction capabilities to accurately capture the underlying genetic architecture. WheatGP is designed to improve the phenotype prediction accuracy by modeling both additive genetic effects and epistatic genetic effects. It is primarily composed of a convolutional neural network (CNN) module and a long short-term memory (LSTM) module. 
 
-
-
-
-`   <img title="" src="file:///C:/Users/Administrator/Desktop/overview.png" alt="![alt " data-align="inline" width="694">text](image.jpg)
+![overview](https://github.com/user-attachments/assets/8f6dcf9c-7ca1-4fc1-bbc5-c4719cc77ae6)
 
 In CNN module, the genotypic input in the form of a one-dimensional vector is evenly divided into five slices, each slice is processed through the multi-layer CNN structure. The CNN module is concentrated on learning the local features of the slices. The LSTM module is employed to further extract global features from genomic data. The interactions between non-allelic genes at different gene loci are captured by its long short-term memory mechanism more efficiently. Ultimately, the fully connected layer in the Prediction module maps the extracted distributed feature representations to the sample tag space, enabling phenotype prediction of wheat. 
-
-
 
 #### Environment Requirements
 
@@ -36,7 +31,6 @@ You can use `conda` to create a new environment named `wheatgp` and install 
 ```
 conda env create -f environment.yml
 ```
-
 
 
 #### A selectable GUI for you
@@ -59,12 +53,12 @@ cd /home/user/WheatGP/GUI
 python GUIcode.py
 ```
 
-<img title="" src="file:///C:/Users/Administrator/AppData/Roaming/marktext/images/2025-02-21-00-05-45-image.png" alt="" width="493" data-align="inline">
+![image](https://github.com/user-attachments/assets/00e68973-2fc2-4865-a090-e99caf0b281f)
+
 
 ****NOTE: ****
 
 Your original data can be in the form of genotype and phenotype in.csv format. Prior to training, this data needs to undergo preprocessing. During the training process, genotype and phenotype data in the.pkl format with dictionary type are required. Before commencing training, you must set the path for saving the model to execute the training operation. In addition, parameters such as the **LSTM dim** also need to be set correctly. If there are any errors in your settings, the information box below will **display the error reasons**. We provide a  model to demonstrate the performance of WheatGP in wheat599 dataset. You only need to import the **Existing Model** and the validation data in `./data_example`. After the test is completed, you can click the **Save Test Results** button. At this time, a result file containing the true values and predicted values will be generated in the root directory.
-
 
 
 If you encounter any problems during the use process or have further needs for discussing the project, such as obtaining the code of the enhanced WheatGP, please contact us. We are glad to provide you with efficient assistance. 
