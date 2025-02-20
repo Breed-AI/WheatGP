@@ -1,9 +1,4 @@
-
-
 # WheatGP
-
-<style>
-</style>
 
 #### **Overview of WheatGP**
 
