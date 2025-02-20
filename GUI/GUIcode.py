@@ -16,8 +16,8 @@ import logging
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
 import matplotlib.pyplot as plt
-
-
+from tkinter.font import Font
+from tkinter import font
 # 模型定义部分
 class ConvPart(nn.Module):
     def __init__(self):
@@ -287,7 +287,6 @@ def test_model(model, test_loader, device):
 
     return pearson_r, mse, mae, Y_trues, Y_preds
 
-
 # 保存测试结果到 CSV 文件
 def save_test_results_to_csv(Y_trues, Y_preds, file_path):
     df = pd.DataFrame({
@@ -295,7 +294,6 @@ def save_test_results_to_csv(Y_trues, Y_preds, file_path):
         'Predicted Phenotype': Y_preds
     })
     df.to_csv(file_path, index=False)
-
 
 # 自定义日志处理器，将日志输出到 Text 组件
 class TextHandler(logging.Handler):
@@ -318,11 +316,23 @@ class TextHandler(logging.Handler):
 class WheatGPGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Wheat GP Training and Testing")
-
+        self.root.title("WheatGP")
         # 配置 ttkbootstrap 主题
-        self.style = Style(theme='cosmo')
+        self.style = Style(theme='cyborg')
 
+        # 设置窗口的初始大小
+        window_width = 630
+        window_height = 800
+        self.root.geometry(f"{window_width}x{window_height}")
+
+        # 禁止用户调整窗口大小
+        self.root.resizable(False, False)
+
+        # 创建加粗字体
+        bold_font = Font(family='Arial', size=10, weight='bold')
+
+        # 修改默认样式以使用加粗字体
+        self.style.configure('.', font=bold_font)
         # 创建一个框架用于放置所有组件，并设置全局背景
         main_frame = ttk.Frame(root, padding=10, style='MainFrame.TFrame')
         main_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
@@ -331,33 +341,39 @@ class WheatGPGUI:
         file_frame = ttk.Frame(main_frame, padding=5)
         file_frame.pack(pady=5, fill=tk.X)
 
+        file_frame.columnconfigure(1, weight=1)
+        file_frame.columnconfigure(4, weight=1)
+
         self.phenotype_file_entry = ttk.Entry(file_frame, width=50)
         self.phenotype_file_entry.grid(row=0, column=1, padx=5, pady=5, sticky=tk.EW)
-        self.phenotype_file_button = ttk.Button(file_frame, text="Select Phenotype file for training (.csv)",
-                                                command=self.select_phenotype_file, style='Primary.TButton')
-        self.phenotype_file_button.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
+        self.phenotype_file_button = ttk.Button(file_frame, text="Phenotype for training (.csv)",
+                                                command=self.select_phenotype_file, style='Primary.TButton', width=35)
+        self.phenotype_file_button.grid(row=0, column=4, padx=5, pady=5, sticky=tk.NSEW)
 
         self.genotype_file_entry = ttk.Entry(file_frame, width=50)
         self.genotype_file_entry.grid(row=1, column=1, padx=5, pady=5, sticky=tk.EW)
-        self.genotype_file_button = ttk.Button(file_frame, text="Select Genotype file for training (.csv)",
-                                               command=self.select_genotype_file, style='Primary.TButton')
-        self.genotype_file_button.grid(row=1, column=2, padx=5, pady=5, sticky=tk.NSEW)
+        self.genotype_file_button = ttk.Button(file_frame, text="Genotype for training (.csv)",
+                                               command=self.select_genotype_file, style='Primary.TButton', width=35)
+        self.genotype_file_button.grid(row=1, column=4, padx=5, pady=5, sticky=tk.NSEW)
 
         # 新增测试集文件选择
         test_file_frame = ttk.Frame(main_frame, padding=5)
         test_file_frame.pack(pady=5, fill=tk.X)
 
+        test_file_frame.columnconfigure(1, weight=1)
+        test_file_frame.columnconfigure(4, weight=1)
+
         self.test_phenotype_file_entry = ttk.Entry(test_file_frame, width=50)
         self.test_phenotype_file_entry.grid(row=0, column=1, padx=5, pady=5, sticky=tk.EW)
-        self.test_phenotype_file_button = ttk.Button(test_file_frame, text="Select Phenotype file for testing (.pkl)",
-                                                     command=self.select_test_phenotype_file, style='Primary.TButton')
-        self.test_phenotype_file_button.grid(row=0, column=2, padx=5, pady=5, sticky=tk.NSEW)
+        self.test_phenotype_file_button = ttk.Button(test_file_frame, text="Phenotype for testing (.pkl)",
+                                                     command=self.select_test_phenotype_file, style='Primary.TButton', width=35)
+        self.test_phenotype_file_button.grid(row=0, column=4, padx=5, pady=5, sticky=tk.NSEW)
 
         self.test_genotype_file_entry = ttk.Entry(test_file_frame, width=50)
         self.test_genotype_file_entry.grid(row=1, column=1, padx=5, pady=5, sticky=tk.EW)
-        self.test_genotype_file_button = ttk.Button(test_file_frame, text="Select Genotype file for testing (.pkl)",
-                                                    command=self.select_test_genotype_file, style='Primary.TButton')
-        self.test_genotype_file_button.grid(row=1, column=2, padx=5, pady=5, sticky=tk.NSEW)
+        self.test_genotype_file_button = ttk.Button(test_file_frame, text="Genotype for testing (.pkl)",
+                                                    command=self.select_test_genotype_file, style='Primary.TButton', width=35)
+        self.test_genotype_file_button.grid(row=1, column=4, padx=5, pady=5, sticky=tk.NSEW)
 
         # 创建一个框架来放置超参数输入框
         param_frame = ttk.Frame(main_frame, padding=5)
@@ -365,15 +381,21 @@ class WheatGPGUI:
 
         # 超参数输入，排列成 4 行 * 2 列
         param_labels = [
-            ("Sequence Length:", "seq_length_entry", "length of input"),
+            ("Sequence Length:", "seq_length_entry", "1280"),
             ("Random Seed:", "random_seed_entry", "555"),
             ("Learning Rate (LR):", "learning_rate_entry", "0.005"),
-            ("Batch Size Train (BS):", "batch_size_train_entry", "64"),
+            ("Batch Size (BS):", "batch_size_train_entry", "64"),
             ("Weight Decay (WD):", "weight_decay_entry", "0.0001"),
             ("Epochs:", "epochs_entry", "300"),
             ("Patience:", "patience_entry", "50"),
-            ("LSTM Dim:", "lstm_embedding_units_entry", "Calculate by input")
+            ("LSTM Dim:", "lstm_embedding_units_entry", "10080")
         ]
+
+        # 配置所有列的权重，让它们能根据可用空间扩展
+        for col in range(4):
+            param_frame.columnconfigure(col, weight=1)
+        for row in range(4):
+            param_frame.rowconfigure(row, weight=1)
 
         for i, (label_text, entry_name, default_value) in enumerate(param_labels):
             row = i // 2
@@ -388,46 +410,54 @@ class WheatGPGUI:
         # 模型保存路径选择
         model_path_frame = ttk.Frame(main_frame, padding=5)
         model_path_frame.pack(pady=5, fill=tk.X)
-
+        model_path_frame.columnconfigure(1, weight=1)
+        model_path_frame.columnconfigure(4, weight=1)
         self.model_save_path_entry = ttk.Entry(model_path_frame, width=50)
-        self.model_save_path_entry.insert(0, "best_model.ckpt")
+        self.model_save_path_entry.insert(0, "")
         self.model_save_path_entry.grid(row=0, column=1, padx=5, pady=5, sticky=tk.EW)
         self.model_save_path_button = ttk.Button(model_path_frame, text="Select Model Save Path",
-                                                 command=self.select_model_save_path, style='Primary.TButton')
-        self.model_save_path_button.grid(row=0, column=4, padx=5, pady=5)
+                                                 command=self.select_model_save_path, style='Primary.TButton', width=35)
+        self.model_save_path_button.grid(row=0, column=4, padx=5, pady=5, sticky=tk.NSEW)
 
         self.load_model_entry = ttk.Entry(model_path_frame, width=50)
         self.load_model_entry.grid(row=1, column=1, padx=5, pady=5, sticky=tk.EW)
-        self.load_model_button = ttk.Button(model_path_frame, text="Select Existing Model",
-                                            command=self.select_existing_model, style='Primary.TButton')
-        self.load_model_button.grid(row=1, column=4, padx=5, pady=5)
-
+        self.load_model_button = ttk.Button(model_path_frame, text="Existing Model for testing",
+                                            command=self.select_existing_model, style='Primary.TButton', width=35)
+        self.load_model_button.grid(row=1, column=4, padx=5, pady=5, sticky=tk.NSEW)
         # 预处理、训练、测试、保存结果按钮框架
         button_frame = ttk.Frame(main_frame, padding=5)
         button_frame.pack(pady=10, fill=tk.X)
 
-        # 预处理按钮
+        button_frame.columnconfigure(1, weight=1)
+        button_frame.columnconfigure(2, weight=1)
+        button_frame.columnconfigure(3, weight=1)
+        button_frame.columnconfigure(4, weight=1)
         self.preprocess_button = ttk.Button(button_frame, text="Preprocess Data", command=self.preprocess,
-                                            style='Primary.TButton')
-        self.preprocess_button.grid(row=0, column=0, padx=5)
+                                            style='Primary.TButton', width=15)
+        self.preprocess_button.grid(row=0, column=1, padx=5, sticky=tk.EW)
 
         # 训练按钮
         self.train_button = ttk.Button(button_frame, text="Train Model", command=self.train, state=tk.DISABLED,
-                                       style='Primary.TButton')
-        self.train_button.grid(row=0, column=1, padx=5)
+                                       style='Primary.TButton', width=15)
+        self.train_button.grid(row=0, column=2, padx=5, sticky=tk.EW)
 
         # 测试按钮
         self.test_button = ttk.Button(button_frame, text="Test Model", command=self.test, state=tk.DISABLED,
-                                      style='Primary.TButton')
-        self.test_button.grid(row=0, column=2, padx=5)
+                                      style='Primary.TButton', width=15)
+        self.test_button.grid(row=0, column=3, padx=5, sticky=tk.EW)
 
         # 保存测试结果按钮
         self.save_results_button = ttk.Button(button_frame, text="Save Test Results", command=self.save_test_results,
-                                              state=tk.DISABLED, style='Primary.TButton')
-        self.save_results_button.grid(row=0, column=3, padx=5)
+                                              state=tk.DISABLED, style='Primary.TButton', width=15)
+        self.save_results_button.grid(row=0, column=4, padx=5, sticky=tk.EW)
 
         # 创建一个用于显示日志的 Text 组件
         self.log_text = tk.Text(main_frame, height=10, width=80, state=tk.DISABLED)
+
+        # 定义字体样式
+        log_font = font.Font(family='Arial', size=10)
+        self.log_text.configure(font=log_font)
+
         self.log_text.pack(pady=10, fill=tk.BOTH, expand=True)
 
         # 自定义日志处理器，将日志输出到 Text 组件
@@ -664,25 +694,31 @@ class WheatGPGUI:
         te_dataset = TensorDataset(*te_G, te_Y)
         te_loader = DataLoader(te_dataset, batch_size=1, shuffle=False)
 
-        model_save_path = self.model_save_path_entry.get()
-        if not model_save_path:
-            messagebox.showerror("Error", "Model save path is empty.")
-            logging.error("Model save path is empty.")
+        # 根据是否使用已有模型选择正确的路径
+        load_model_path = self.load_model_entry.get()
+        if load_model_path:
+            model_path = load_model_path
+        else:
+            model_path = self.model_save_path_entry.get()
+
+        if not model_path:
+            messagebox.showerror("Error", "Model path is empty.")
+            logging.error("Model path is empty.")
             return
         import os
-        if not os.path.exists(model_save_path):
-            messagebox.showerror("Error", f"Model file not found at {model_save_path}.")
-            logging.error(f"Model file not found at {model_save_path}.")
+        if not os.path.exists(model_path):
+            messagebox.showerror("Error", f"Model file not found at {model_path}.")
+            logging.error(f"Model file not found at {model_path}.")
             return
         try:
-            logging.info(f"Attempting to load model from {model_save_path}")
-            state_dict = torch.load(model_save_path)
+            logging.info(f"Attempting to load model from {model_path}")
+            state_dict = torch.load(model_path)
             if state_dict is None:
-                messagebox.showerror("Error", f"Failed to load model from {model_save_path}. Returned None.")
-                logging.error(f"Failed to load model from {model_save_path}. Returned None.")
+                messagebox.showerror("Error", f"Failed to load model from {model_path}. Returned None.")
+                logging.error(f"Failed to load model from {model_path}. Returned None.")
                 return
             self.model.load_state_dict(state_dict)
-            logging.info(f"Successfully loaded model from {model_save_path}")
+            logging.info(f"Successfully loaded model from {model_path}")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load model: {e}")
             logging.error(f"Failed to load model: {e}")
