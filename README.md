@@ -53,8 +53,7 @@ cd /home/user/WheatGP/GUI
 python GUIcode.py
 ```
 
-![image](https://github.com/user-attachments/assets/00e68973-2fc2-4865-a090-e99caf0b281f)
-
+<img src="https://github.com/user-attachments/assets/00e68973-2fc2-4865-a090-e99caf0b281f" width="50%" alt="load">
 
 ****NOTE: ****
 
