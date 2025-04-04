@@ -11,7 +11,7 @@ from scipy.stats import probplot, linregress
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, random_split
 import logging
 from tqdm import tqdm
 from torch.optim.lr_scheduler import StepLR
@@ -119,7 +119,6 @@ class wheatGP_base(nn.Module):
             param.requires_grad = not freeze_fc
 
 
-# 数据预处理函数
 def preprocess_data(phenotype_file, genotype_file, seq_length):
     P = pd.read_csv(phenotype_file)
     G = pd.read_csv(genotype_file)
@@ -144,14 +143,12 @@ def preprocess_data(phenotype_file, genotype_file, seq_length):
         genotype1d_dict[index] = row
     del X
 
-    # 数据集划分
     indices = list(phenotype_dict.keys())
     np.random.shuffle(indices)
     split_index = int(len(indices) * 0.9)
     train_indices = indices[:split_index]
     val_indices = indices[split_index:]
 
-    # 根据索引提取训练集和验证集数据
     phenotype_train = {i: phenotype_dict[i] for i in train_indices}
     phenotype_val = {i: phenotype_dict[i] for i in val_indices}
     genotype1d_train = {i: genotype1d_dict[i] for i in train_indices}
@@ -159,8 +156,6 @@ def preprocess_data(phenotype_file, genotype_file, seq_length):
 
     return phenotype_train, genotype1d_train, phenotype_val, genotype1d_val
 
-
-# 划分基因型数据函数
 def split_genotype_data(genotype1d_dict, features_per_group):
     G = []
     for sample in genotype1d_dict.values():
@@ -174,8 +169,6 @@ def split_genotype_data(genotype1d_dict, features_per_group):
     tensors = [torch.tensor(G[:, i], dtype=torch.float32) for i in range(5)]
     return tensors
 
-
-# 训练和验证函数
 def train_and_validate(model, train_loader, val_loader, criterion, optimizer, epochs, patience, scheduler, device):
     best_mse = float('inf')
     best_mae = float('inf')
@@ -312,32 +305,24 @@ class TextHandler(logging.Handler):
 
         self.text_widget.after(0, append)
 
-
 class WheatGPGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("WheatGP")
-        # 配置 ttkbootstrap 主题
         self.style = Style(theme='cyborg')
 
-        # 设置窗口的初始大小
         window_width = 630
         window_height = 800
         self.root.geometry(f"{window_width}x{window_height}")
 
-        # 禁止用户调整窗口大小
         self.root.resizable(False, False)
 
-        # 创建加粗字体
         bold_font = Font(family='Arial', size=10, weight='bold')
 
-        # 修改默认样式以使用加粗字体
         self.style.configure('.', font=bold_font)
-        # 创建一个框架用于放置所有组件，并设置全局背景
         main_frame = ttk.Frame(root, padding=10, style='MainFrame.TFrame')
         main_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
-        # 输入文件选择
         file_frame = ttk.Frame(main_frame, padding=5)
         file_frame.pack(pady=5, fill=tk.X)
 
@@ -566,11 +551,11 @@ class WheatGPGUI:
                 # 保存预处理完的数据到根目录下
                 with open('P_train.pkl', 'wb') as f:
                     pickle.dump(self.phenotype_train, f)
-                with open('P_val.pkl', 'wb') as f:
+                with open('P_te.pkl', 'wb') as f:
                     pickle.dump(self.phenotype_val, f)
                 with open('G_train.pkl', 'wb') as f:
                     pickle.dump(self.genotype1d_train, f)
-                with open('G_val.pkl', 'wb') as f:
+                with open('G_te.pkl', 'wb') as f:
                     pickle.dump(self.genotype1d_val, f)
 
                 messagebox.showinfo("Success", "Data preprocessing completed and saved.")
@@ -607,18 +592,19 @@ class WheatGPGUI:
             features_per_group = features_per_sample // 5
             G1train, G2train, G3train, G4train, G5train = split_genotype_data(self.genotype1d_train,
                                                                               features_per_group)
-            G1val, G2val, G3val, G4val, G5val = split_genotype_data(self.genotype1d_val, features_per_group)
-
             train_G = [G1train, G2train, G3train, G4train, G5train]
-            val_G = [G1val, G2val, G3val, G4val, G5val]
-
             train_Y = torch.tensor(np.array(list(self.phenotype_train.values()), dtype=np.float32),
                                    dtype=torch.float32).to(device)
-            val_Y = torch.tensor(np.array(list(self.phenotype_val.values()), dtype=np.float32),
-                                 dtype=torch.float32).to(device)
 
             train_dataset = TensorDataset(*train_G, train_Y)
-            val_dataset = TensorDataset(*val_G, val_Y)
+            dataset_size = len(train_dataset)
+            train_size = int(0.9 * dataset_size)
+            val_size = dataset_size - train_size
+
+            train_dataset, val_dataset = random_split(
+                train_dataset, [train_size, val_size],
+                generator=torch.Generator().manual_seed(42)
+            )
 
             train_loader = DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
             val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False)

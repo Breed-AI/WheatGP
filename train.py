@@ -3,7 +3,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, random_split
 import pickle
 import pandas as pd
 import numpy as np
@@ -134,7 +134,6 @@ def main():
     features_per_sample = len(next(iter(genotype1d_train.values())))
     features_per_group = features_per_sample // 5
     G1train, G2train, G3train, G4train, G5train = split_genotype_data(genotype1d_train, features_per_group)
-    G1val, G2val, G3val, G4val, G5val = split_genotype_data(genotype1d_val, features_per_group)
 
     lstm_dim = 10080 # Calculation based on the input size
     learning_rate = 0.005  # 0.0001 - 0.01
@@ -145,14 +144,16 @@ def main():
     patience = 50  # 20 - 100
 
     train_G = [G1train, G2train, G3train, G4train, G5train]
-    val_G = [G1val, G2val, G3val, G4val, G5val]
-
     train_Y = torch.tensor(np.array(list(phenotype_train.values()), dtype=np.float32), dtype=torch.float32).to(device)
-    val_Y = torch.tensor(np.array(list(phenotype_val.values()), dtype=np.float32), dtype=torch.float32).to(device)
-
     train_dataset = TensorDataset(*train_G, train_Y)
-    val_dataset = TensorDataset(*val_G, val_Y)
+    dataset_size = len(train_dataset)
+    train_size = int(0.9 * dataset_size)
+    val_size = dataset_size - train_size
 
+    train_dataset, val_dataset = random_split(
+        train_dataset, [train_size, val_size],
+        generator=torch.Generator().manual_seed(42)
+    )
     train_loader = DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size_val, shuffle=False)
 
