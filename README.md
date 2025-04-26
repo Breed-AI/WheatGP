@@ -49,6 +49,6 @@ python GUIcode.py
 - [x] ✨We provide a model to demonstrate the performance of WheatGP in wheat599 dataset. You only need to import the Existing Model and the validation data in. Notably, the phenotypes provided by the example file here have been normalized.
 - [x] ✨After the test is completed, you can click the Save Test Results button. At this time, a result file containing the observed values and predicted values will be generated in the root directory.
 
-**🔍 If you encounter any problems during the use process or have further needs for discussing the project, such as obtaining the code of the enhanced WheatGP, please contact us. We are glad to provide you with efficient assistance.**
+**🔍 If you encounter any problems during the use process or have further needs for discussing the project, please contact us. We are glad to provide you with efficient assistance.**
 
 
